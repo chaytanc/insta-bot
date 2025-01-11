@@ -1,0 +1,43 @@
+name: Run Node.js Script on Schedule
+
+on:
+  schedule:
+    # Cron syntax: 'minute hour day-of-month month day-of-week'
+    # Example: Every day at 1 AM UTC
+    - cron: '0 1 * * *'
+
+  workflow_dispatch: # Optional, allows manual triggering
+    inputs:
+      custom_param:
+        description: 'Custom input for script (optional)'
+        required: false
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18' # Use the version of Node.js your script requires
+
+    - name: Cache Node.js modules
+      uses: actions/cache@v3
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    - name: Install Dependencies
+      run: npm install
+
+    - name: Run Script
+      run: node repost.ts
+      env: # Optional environment variables
+        INSTAGRAM_USERNAME: ${{ secrets.INSTAGRAM_USERNAME }}
+        INSTAGRAM_PASSWORD: ${{ secrets.INSTAGRAM_PASSWORD }}
